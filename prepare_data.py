@@ -18,21 +18,29 @@ def trans_smiles(x):
 def mol2graph(path, ATOM_TYPE):
     with open(path) as f:
         lines = f.readlines()
+        
     atom_lines = lines[lines.index('@<TRIPOS>ATOM\n')+1:lines.index('@<TRIPOS>BOND\n')]
     bond_lines = lines[lines.index('@<TRIPOS>BOND\n')+1:]
+    
     atoms = []
     for atom in atom_lines:
         ele = atom.split()[5].split('.')[0]
         atoms.append(ATOM_TYPE.index(ele) 
                         if ele in ATOM_TYPE 
                         else len(ATOM_TYPE))
+        
     edge_1 = [int(i.split()[1])-1 for i in bond_lines]
     edge_2 = [int(i.split()[2])-1 for i in bond_lines]
+    
     edge_attr = [EDGE_ATTR[i.split()[3]] for i in bond_lines]
+    
     x = torch.tensor(atoms)
+    
     edge_idx=torch.tensor([edge_1+edge_2,edge_2+edge_1])
     edge_attr=torch.tensor(edge_attr+edge_attr)
+    
     graph = Data(x=x, edge_index=edge_idx, edge_attr=edge_attr)
+    
     return graph
 
 class GraphData(InMemoryDataset):
